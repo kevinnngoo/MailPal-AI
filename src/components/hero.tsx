@@ -26,23 +26,22 @@ export default function Hero() {
             </h1>
 
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Automatically identify, unsubscribe from, and delete unwanted
-              emails. Clean up years of clutter in minutes with our intelligent
-              email management assistant.
+              Automatically identify, unsubscribe from, and delete unwanted emails. Clean up years
+              of clutter in minutes with our intelligent email management assistant.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center px-8 py-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+                className="inline-flex items-center px-8 py-4 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all text-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Start Cleaning Now
+                Start Free Trial
                 <ArrowUpRight className="ml-2 w-5 h-5" />
               </Link>
 
               <Link
                 href="#pricing"
-                className="inline-flex items-center px-8 py-4 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-lg font-medium"
+                className="inline-flex items-center px-8 py-4 text-gray-700 bg-white border-2 border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors text-lg font-medium"
               >
                 View Pricing
               </Link>
@@ -51,15 +50,15 @@ export default function Hero() {
             <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500" />
-                <span>Works with Gmail & Outlook</span>
+                <span>AI-Powered Categorization</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500" />
+                <span>Privacy-First Approach</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500" />
                 <span>Free 14-day trial</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-green-500" />
-                <span>No credit card required</span>
               </div>
             </div>
           </div>

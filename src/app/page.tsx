@@ -49,25 +49,27 @@ export default async function Home() {
             {[
               {
                 icon: <Mail className="w-6 h-6" />,
-                title: "Smart Categorization",
+                title: "AI-Powered Categorization",
                 description:
-                  "Automatically sort emails into subscriptions, promotions, and spam",
+                  "Machine learning automatically identifies subscriptions, promotions, and spam with 99% accuracy",
               },
               {
                 icon: <Unlink className="w-6 h-6" />,
-                title: "One-Click Unsubscribe",
+                title: "Verified Unsubscribe",
                 description:
-                  "Bulk unsubscribe from unwanted mailing lists instantly",
+                  "Track unsubscribe effectiveness and detect fake unsubscribe links",
               },
               {
                 icon: <Calendar className="w-6 h-6" />,
-                title: "Automated Scheduling",
-                description: "Set up recurring cleanups with custom parameters",
+                title: "Smart Automation",
+                description:
+                  "Set up intelligent rules that learn from your preferences over time",
               },
               {
                 icon: <BarChart3 className="w-6 h-6" />,
-                title: "Analytics Dashboard",
-                description: "Track your cleanup progress and inbox health",
+                title: "Privacy Analytics",
+                description:
+                  "Track your cleanup progress without storing any email content",
               },
             ].map((feature, index) => (
               <div
@@ -107,7 +109,7 @@ export default async function Home() {
                 icon: <Zap className="w-8 h-8" />,
                 title: "AI Analysis",
                 description:
-                  "Our AI scans and categorizes your emails, identifying subscriptions and unwanted content",
+                  "Advanced AI categorizes emails without storing content, ensuring complete privacy",
               },
               {
                 step: "03",
@@ -138,10 +140,12 @@ export default async function Home() {
       <section className="py-20 bg-blue-600 text-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Trusted by Thousands</h2>
+            <h2 className="text-3xl font-bold mb-4">
+              Privacy-First Email Intelligence
+            </h2>
             <p className="text-blue-100 max-w-2xl mx-auto">
-              Join users who have already cleaned millions of emails and
-              reclaimed their productivity.
+              Join users who trust our AI-powered platform to clean their inbox
+              while keeping their data completely private.
             </p>
           </div>
           <div className="grid md:grid-cols-4 gap-8 text-center">
@@ -158,8 +162,8 @@ export default async function Home() {
               <div className="text-blue-100">Happy Users</div>
             </div>
             <div>
-              <div className="text-4xl font-bold mb-2">99.9%</div>
-              <div className="text-blue-100">Uptime Guaranteed</div>
+              <div className="text-4xl font-bold mb-2">100%</div>
+              <div className="text-blue-100">Privacy Protected</div>
             </div>
           </div>
         </div>

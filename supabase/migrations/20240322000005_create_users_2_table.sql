@@ -215,7 +215,7 @@ BEGIN
                 FOR ALL USING (auth.uid()::text = user_id)';
     END IF;
 END
-$;
+$$;
 
 -- Create a function that will be triggered when a new user signs up
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -299,9 +299,6 @@ CREATE TRIGGER on_user_profile_created
   AFTER INSERT ON public.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_profile();
 
--- Create sample pricing plans (run this manually in Stripe dashboard or via API)
--- This is just for reference - actual plans should be created in Stripe
-
 -- Enable realtime for all tables
 alter publication supabase_realtime add table users;
 alter publication supabase_realtime add table user_profiles;
@@ -309,22 +306,4 @@ alter publication supabase_realtime add table cleanup_jobs;
 alter publication supabase_realtime add table email_categories;
 alter publication supabase_realtime add table scheduled_cleanups;
 alter publication supabase_realtime add table subscriptions;
-alter publication supabase_realtime add table webhook_events;
-
--- Insert sample data for development
-INSERT INTO public.email_categories (user_id, category_name, category_type, sender_domain, email_count, last_seen_at) VALUES
-('sample-user-id', 'Tech Newsletters', 'newsletter', 'techcrunch.com', 45, NOW()),
-('sample-user-id', 'Amazon Promotions', 'promotion', 'amazon.com', 123, NOW()),
-('sample-user-id', 'Social Media', 'social', 'facebook.com', 67, NOW()),
-('sample-user-id', 'Spam Messages', 'spam', 'suspicious.com', 23, NOW())
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.cleanup_jobs (user_id, job_type, status, emails_processed, emails_deleted, emails_unsubscribed, started_at, completed_at) VALUES
-('sample-user-id', 'manual', 'completed', 1247, 89, 23, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
-('sample-user-id', 'scheduled', 'completed', 456, 34, 12, NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.scheduled_cleanups (user_id, name, frequency, next_run_at, is_active) VALUES
-('sample-user-id', 'Weekly Newsletter Cleanup', 'weekly', NOW() + INTERVAL '7 days', true),
-('sample-user-id', 'Monthly Promotion Purge', 'monthly', NOW() + INTERVAL '30 days', true)
-ON CONFLICT DO NOTHING; 
+alter publication supabase_realtime add table webhook_events; 
