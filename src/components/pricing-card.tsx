@@ -2,22 +2,10 @@
 
 import { User } from "@supabase/supabase-js";
 import { Button } from "./ui/button";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { createClient } from "../../supabase/client";
 
-export default function PricingCard({
-  item,
-  user,
-}: {
-  item: any;
-  user: User | null;
-}) {
+export default function PricingCard({ item, user }: { item: any; user: User | null }) {
   const supabase = createClient();
 
   // Handle checkout process
@@ -40,7 +28,7 @@ export default function PricingCard({
           headers: {
             "X-Customer-Email": user.email || "",
           },
-        },
+        }
       );
 
       if (error) {
@@ -75,13 +63,12 @@ export default function PricingCard({
           {item.name}
         </CardTitle>
         <CardDescription className="flex items-baseline gap-2 mt-2">
-          <span className="text-4xl font-bold text-gray-900">
-            ${item?.amount / 100}
-          </span>
+          <span className="text-4xl font-bold text-gray-900">${item?.amount / 100}</span>
           <span className="text-gray-600">/{item?.interval}</span>
         </CardDescription>
+        <div className="mt-2 text-xs text-gray-500 font-mono">Price ID: {item.id}</div>
       </CardHeader>
-      <CardFooter className="relative">
+      <CardFooter className="relative flex flex-col gap-2">
         <Button
           onClick={async () => {
             await handleCheckout(item.id);
@@ -90,6 +77,19 @@ export default function PricingCard({
         >
           Get Started
         </Button>
+        {process.env.NODE_ENV === "development" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              console.log("Test checkout for:", item);
+              await handleCheckout(item.id);
+            }}
+            className="w-full text-sm"
+          >
+            Test Checkout
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
