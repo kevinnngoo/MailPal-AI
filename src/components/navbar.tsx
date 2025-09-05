@@ -1,15 +1,44 @@
+"use client";
+
 import Link from "next/link";
-import { createClient } from "../../supabase/server";
+import { createClient } from "../../supabase/client";
 import { Button } from "./ui/button";
 import { User, UserCircle } from "lucide-react";
 import UserProfile from "./user-profile";
+import { useEffect, useState } from "react";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
-export default async function Navbar() {
-  const supabase = await createClient();
+export default function Navbar() {
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Error getting user:", error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   return (
     <nav className="w-full border-b border-gray-200 bg-white py-2">
@@ -18,7 +47,12 @@ export default async function Navbar() {
           📧 CleanInbox
         </Link>
         <div className="flex gap-4 items-center">
-          {user ? (
+          {isLoading ? (
+            <div className="flex gap-4 items-center">
+              <div className="w-16 h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-16 h-8 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          ) : user ? (
             <>
               <Link
                 href="/dashboard"
