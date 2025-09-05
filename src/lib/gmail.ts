@@ -24,11 +24,18 @@ export interface SafetyCheck {
   requiresConfirmation: boolean;
 }
 
+import { encrypt } from './encryption';
+
 class GmailService {
   private oauth2Client: OAuth2Client;
   private gmail: any;
+  private supabase: any;
+  private userId: string;
 
-  constructor(accessToken: string, refreshToken: string) {
+  constructor(accessToken: string, refreshToken: string, supabase: any, userId: string) {
+    this.supabase = supabase;
+    this.userId = userId;
+
     this.oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
@@ -40,7 +47,37 @@ class GmailService {
       refresh_token: refreshToken,
     });
 
+    // Auto-refresh tokens and update in Supabase
+    this.oauth2Client.on('tokens', async (tokens) => {
+      if (tokens.access_token) {
+        await this.supabase
+          .from('users')
+          .update({
+            gmail_access_token: encrypt(tokens.access_token),
+            ...(tokens.refresh_token && { gmail_refresh_token: encrypt(tokens.refresh_token) })
+          })
+          .eq('user_id', this.userId);
+      }
+    });
+
     this.gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
+  }
+
+  // Retry wrapper for Gmail API calls with token refresh
+  private async retryGmailCall<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        if (error?.code === 401 && attempt < maxRetries) {
+          // Token expired, refresh and retry
+          await this.oauth2Client.getAccessToken();
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new Error('Max retries exceeded');
   }
 
   // Protected domains that should never be auto-processed
@@ -63,11 +100,11 @@ class GmailService {
   ];
 
   async scanPromotionalEmails(maxResults: number = 50): Promise<EmailData[]> {
-    try {
+    return this.retryGmailCall(async () => {
       // Query for promotional and marketing emails
       const queries = [
         'category:promotions',
-        'category:updates', 
+        'category:updates',
         'from:noreply OR from:newsletter OR from:marketing'
       ];
 
@@ -92,7 +129,6 @@ class GmailService {
                 }
               })
             );
-            
             allEmails.push(...emailDetails.filter(Boolean) as EmailData[]);
           }
         } catch (queryError) {
@@ -103,14 +139,10 @@ class GmailService {
 
       // Remove duplicates and sort by date
       const uniqueEmails = this.removeDuplicates(allEmails);
-      return uniqueEmails.sort((a, b) => 
+      return uniqueEmails.sort((a, b) =>
         new Date(b.date).getTime() - new Date(a.date).getTime()
       );
-
-    } catch (error) {
-      console.error('Error scanning emails:', error);
-      throw new Error('Failed to scan promotional emails');
-    }
+    });
   }
 
   private async getEmailDetails(messageId: string): Promise<EmailData | null> {

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { createClient } from '../../../../../supabase/server';
@@ -45,16 +46,24 @@ export async function GET(request: NextRequest) {
 }
 
 // POST: Handle Gmail OAuth callback
+
+// Zod schema for callback validation
+const CallbackSchema = z.object({
+  code: z.string().min(1),
+  state: z.string().uuid(),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    const { code, state: userId } = await request.json();
-
-    if (!code || !userId) {
+    const body = await request.json();
+    const parsed = CallbackSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Code and user ID required' }, 
+  { error: 'Invalid request data', details: parsed.error.issues },
         { status: 400 }
       );
     }
+    const { code, state: userId } = parsed.data;
 
     const supabase = await createClient();
 

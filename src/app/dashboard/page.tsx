@@ -1,7 +1,9 @@
 // app/dashboard/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
+import { useToast } from "@/contexts/ToastContext";
 import { createClient } from "../../../supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import {
   Mail,
@@ -46,7 +48,8 @@ interface Usage {
 }
 
 export default function Dashboard() {
-  const [user, setUser] = useState<any>(null);
+  const { addToast } = useToast();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [emails, setEmails] = useState<EmailData[]>([]);
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
   const [isScanning, setIsScanning] = useState(false);
@@ -79,7 +82,7 @@ export default function Dashboard() {
         return;
       }
 
-      setUser(user);
+      setUser(user as SupabaseUser);
       await checkGmailConnection();
     } catch (error) {
       console.error("Dashboard initialization error:", error);
@@ -90,7 +93,7 @@ export default function Dashboard() {
   const checkGmailConnection = async () => {
     try {
       const { data: profile } = await supabase
-        .from("user_profiles")
+        .from("users")
         .select("gmail_connected_at")
         .eq("user_id", user?.id)
         .single();
@@ -110,11 +113,11 @@ export default function Dashboard() {
       if (data.authUrl) {
         window.location.href = data.authUrl;
       } else {
-        alert("Failed to generate authorization URL");
+        addToast("Failed to generate authorization URL", "error");
       }
     } catch (error) {
       console.error("Failed to initiate Gmail connection:", error);
-      alert("Failed to connect to Gmail. Please try again.");
+      addToast("Failed to connect to Gmail. Please try again.", "error");
     }
   };
 
@@ -147,11 +150,11 @@ export default function Dashboard() {
         setUsage(data.usage);
         setSelectedEmails(new Set());
       } else {
-        alert("Failed to scan emails: " + data.error);
+        addToast("Failed to scan emails: " + data.error, "error");
       }
     } catch (error) {
       console.error("Scan failed:", error);
-      alert("Failed to scan emails. Please try again.");
+      addToast("Failed to scan emails. Please try again.", "error");
     } finally {
       setIsScanning(false);
     }
@@ -209,16 +212,16 @@ export default function Dashboard() {
         setSelectedEmails(new Set());
 
         // Show success message
-        alert(`✅ ${data.message}`);
+        addToast(data.message, "success");
 
         // Refresh usage stats
         await scanEmails();
       } else {
-        alert("❌ Action failed: " + data.error);
+        addToast("Action failed: " + data.error, "error");
       }
     } catch (error) {
       console.error("Bulk action failed:", error);
-      alert("❌ Action failed. Please try again.");
+      addToast("Action failed. Please try again.", "error");
     } finally {
       setIsProcessing(false);
     }
