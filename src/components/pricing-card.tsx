@@ -46,6 +46,7 @@ export default function PricingCard({ item, user }: { item: any; user: User | nu
     }
   };
 
+  // ...existing code...
   return (
     <Card
       className={`w-[350px] relative overflow-hidden ${item.popular ? "border-2 border-blue-500 shadow-xl scale-105" : "border border-gray-200"}`}
