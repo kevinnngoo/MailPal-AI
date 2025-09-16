@@ -30,7 +30,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   className="text-primary font-medium hover:underline transition-all"
                   href="/sign-up"
@@ -78,11 +78,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
               </div>
             </div>
 
-            <SubmitButton
-              className="w-full"
-              pendingText="Signing in..."
-              formAction={signInAction}
-            >
+            <SubmitButton className="w-full" pendingText="Signing in..." formAction={signInAction}>
               Sign in
             </SubmitButton>
 

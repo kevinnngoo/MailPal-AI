@@ -24,7 +24,12 @@ export async function SubscriptionCheck({
 
   // Only check subscription if required (for premium features)
   if (requireSubscription) {
-    const isSubscribed = await checkUserSubscription(user?.id!);
+    const userId = user?.id;
+    if (!userId) {
+      redirect("/sign-in");
+      return;
+    }
+    const isSubscribed = await checkUserSubscription(userId);
     if (!isSubscribed) {
       redirect(redirectTo);
     }

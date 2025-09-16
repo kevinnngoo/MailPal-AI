@@ -49,8 +49,8 @@ export default function OnboardingFlow({ onComplete }: { onComplete?: () => void
           </div>
           <h3 className="text-xl font-semibold">Ready to clean up your inbox?</h3>
           <p className="text-gray-600">
-            We'll analyze your emails and help you unsubscribe from unwanted lists, delete spam, and
-            organize everything automatically.
+            We&apos;ll analyze your emails and help you unsubscribe from unwanted lists, delete
+            spam, and organize everything automatically.
           </p>
           <div className="grid grid-cols-3 gap-4 mt-6">
             <div className="text-center">
@@ -279,7 +279,7 @@ export default function OnboardingFlow({ onComplete }: { onComplete?: () => void
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold">You're All Set!</h2>
+            <h2 className="text-2xl font-bold">You&apos;re All Set!</h2>
             <p className="text-gray-600">
               Your inbox cleanup is ready to begin. Start managing your emails with AI-powered
               tools.

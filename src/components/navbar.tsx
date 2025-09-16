@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { createClient } from "../../supabase/client";
 import { Button } from "./ui/button";
-import { User, UserCircle } from "lucide-react";
 import UserProfile from "./user-profile";
 import { useEffect, useState } from "react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";

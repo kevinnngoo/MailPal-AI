@@ -5,10 +5,8 @@ import Footer from "@/components/footer";
 import { createClient } from "../../supabase/server";
 import {
   ArrowUpRight,
-  CheckCircle2,
   Zap,
   Shield,
-  Users,
   Mail,
   Trash2,
   Calendar,
@@ -17,15 +15,26 @@ import {
   Clock,
 } from "lucide-react";
 
+interface PricingPlan {
+  id: string;
+  name: string;
+  price?: number;
+  amount: number;
+  interval: string;
+  description: string;
+  features: string[];
+  recommended?: boolean;
+  popular?: boolean;
+  priceId?: string;
+}
+
 export default async function Home() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: plans, error } = await supabase.functions.invoke(
-    "supabase-functions-get-plans",
-  );
+  const { data: plans } = await supabase.functions.invoke("supabase-functions-get-plans");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -36,12 +45,10 @@ export default async function Home() {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">
-              Powerful Email Management Features
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Powerful Email Management Features</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Everything you need to take control of your inbox and maintain a
-              clutter-free email experience.
+              Everything you need to take control of your inbox and maintain a clutter-free email
+              experience.
             </p>
           </div>
 
@@ -56,20 +63,17 @@ export default async function Home() {
               {
                 icon: <Unlink className="w-6 h-6" />,
                 title: "Verified Unsubscribe",
-                description:
-                  "Track unsubscribe effectiveness and detect fake unsubscribe links",
+                description: "Track unsubscribe effectiveness and detect fake unsubscribe links",
               },
               {
                 icon: <Calendar className="w-6 h-6" />,
                 title: "Smart Automation",
-                description:
-                  "Set up intelligent rules that learn from your preferences over time",
+                description: "Set up intelligent rules that learn from your preferences over time",
               },
               {
                 icon: <BarChart3 className="w-6 h-6" />,
                 title: "Privacy Analytics",
-                description:
-                  "Track your cleanup progress without storing any email content",
+                description: "Track your cleanup progress without storing any email content",
               },
             ].map((feature, index) => (
               <div
@@ -140,12 +144,10 @@ export default async function Home() {
       <section className="py-20 bg-blue-600 text-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">
-              Privacy-First Email Intelligence
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Privacy-First Email Intelligence</h2>
             <p className="text-blue-100 max-w-2xl mx-auto">
-              Join users who trust our AI-powered platform to clean their inbox
-              while keeping their data completely private.
+              Join users who trust our AI-powered platform to clean their inbox while keeping their
+              data completely private.
             </p>
           </div>
           <div className="grid md:grid-cols-4 gap-8 text-center">
@@ -173,15 +175,13 @@ export default async function Home() {
       <section className="py-24 bg-white" id="pricing">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">
-              Simple, Transparent Pricing
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Simple, Transparent Pricing</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Choose the perfect plan for your needs. No hidden fees.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {plans?.map((item: any) => (
+            {plans?.map((item: PricingPlan) => (
               <PricingCard key={item.id} item={item} user={user} />
             ))}
           </div>
@@ -191,12 +191,10 @@ export default async function Home() {
       {/* CTA Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Clean Up Your Inbox?
-          </h2>
+          <h2 className="text-3xl font-bold mb-4">Ready to Clean Up Your Inbox?</h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Start your free trial today and experience the peace of mind that
-            comes with a perfectly organized inbox.
+            Start your free trial today and experience the peace of mind that comes with a perfectly
+            organized inbox.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a

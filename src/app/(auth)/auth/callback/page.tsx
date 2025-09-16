@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "../../../../supabase/client";
+import { createClient } from "../../../../../supabase/client";
 import { Loader, CheckCircle, AlertTriangle } from "lucide-react";
 
-export default function AuthCallback() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -12,11 +12,7 @@ export default function AuthCallback() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    handleGmailCallback();
-  }, []);
-
-  const handleGmailCallback = async () => {
+  const handleGmailCallback = useCallback(async () => {
     try {
       const code = searchParams.get("code");
       const state = searchParams.get("state");
@@ -79,7 +75,11 @@ export default function AuthCallback() {
       setMessage(error instanceof Error ? error.message : "Failed to connect Gmail account");
       setStatus("error");
     }
-  };
+  }, [router, searchParams, supabase]);
+
+  useEffect(() => {
+    handleGmailCallback();
+  }, [handleGmailCallback]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -91,7 +91,7 @@ export default function AuthCallback() {
             <p className="text-gray-600">{message}</p>
             <div className="mt-6 bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-blue-700">
-                This may take a few moments. Please don't close this window.
+                This may take a few moments. Please don&apos;t close this window.
               </p>
             </div>
           </>
@@ -118,7 +118,7 @@ export default function AuthCallback() {
             <p className="text-gray-600 mb-6">{message}</p>
             <div className="bg-red-50 p-4 rounded-lg mb-6">
               <p className="text-sm text-red-700">
-                Don't worry, this happens sometimes. You can try connecting again.
+                Don&apos;t worry, this happens sometimes. You can try connecting again.
               </p>
             </div>
             <div className="space-y-3">
@@ -139,5 +139,22 @@ export default function AuthCallback() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthCallback() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+            <Loader className="mx-auto h-12 w-12 text-blue-500 animate-spin mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading...</h2>
+          </div>
+        </div>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

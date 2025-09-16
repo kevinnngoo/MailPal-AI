@@ -29,6 +29,7 @@ Built with **Next.js**, **Supabase**, and **Stripe** for a modern, scalable emai
 ## 🚀 Quick Start
 
 ### 1. Clone & Install
+
 ```bash
 git clone https://github.com/kevinnngoo/MailPal-AI.git
 cd MailPal-AI
@@ -36,7 +37,9 @@ npm install
 ```
 
 ### 2. Environment Setup
+
 Copy `.env.example` to `.env.local` and add your keys:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -49,9 +52,11 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ### 3. Run Development Server
+
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 
 ---
@@ -61,7 +66,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 ```
 MailPal-AI/
 ├── app/                # Next.js App Router pages
-├── components/         # Reusable React components  
+├── components/         # Reusable React components
 ├── supabase/           # Database migrations & schema
 ├── public/             # Static assets
 └── .env.example        # Environment variables template
@@ -83,6 +88,7 @@ MailPal-AI/
 ## 🚀 Deployment
 
 Deploy to Vercel in 3 steps:
+
 1. Push to GitHub
 2. Connect repository to Vercel
 3. Add environment variables and deploy

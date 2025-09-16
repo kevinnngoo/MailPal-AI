@@ -5,7 +5,20 @@ import { Button } from "./ui/button";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { createClient } from "../../supabase/client";
 
-export default function PricingCard({ item, user }: { item: any; user: User | null }) {
+interface PricingPlan {
+  id: string;
+  name: string;
+  price?: number;
+  amount: number;
+  interval: string;
+  description: string;
+  features: string[];
+  recommended?: boolean;
+  popular?: boolean;
+  priceId?: string;
+}
+
+export default function PricingCard({ item, user }: { item: PricingPlan; user: User | null }) {
   const supabase = createClient();
 
   // Handle checkout process

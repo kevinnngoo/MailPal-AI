@@ -3,8 +3,8 @@
 // Environment variable validation
 function validateEnvVars() {
   const requiredEnvVars = [
-    "SUPABASE_URL",
-    "SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
   ];

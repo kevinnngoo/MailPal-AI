@@ -12,10 +12,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Loader,
-  Settings,
-  BarChart3,
   X,
-  Plus,
   User,
   LogOut,
   Crown,
@@ -66,44 +63,44 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    initializeDashboard();
-  }, []);
+    const checkGmailConnection = async (userId: string) => {
+      try {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("gmail_connected_at")
+          .eq("user_id", userId)
+          .single();
 
-  const initializeDashboard = async () => {
-    try {
-      // Check if user is authenticated
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        router.push("/login");
-        return;
+        setIsGmailConnected(!!profile?.gmail_connected_at);
+      } catch (error) {
+        console.error("Failed to check Gmail connection:", error);
+        setIsGmailConnected(false);
       }
+    };
 
-      setUser(user as SupabaseUser);
-      await checkGmailConnection();
-    } catch (error) {
-      console.error("Dashboard initialization error:", error);
-      router.push("/login");
-    }
-  };
+    const initializeDashboard = async () => {
+      try {
+        // Check if user is authenticated
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
 
-  const checkGmailConnection = async () => {
-    try {
-      const { data: profile } = await supabase
-        .from("users")
-        .select("gmail_connected_at")
-        .eq("user_id", user?.id)
-        .single();
+        if (error || !user) {
+          router.push("/login");
+          return;
+        }
 
-      setIsGmailConnected(!!profile?.gmail_connected_at);
-    } catch (error) {
-      console.error("Failed to check Gmail connection:", error);
-      setIsGmailConnected(false);
-    }
-  };
+        setUser(user as SupabaseUser);
+        await checkGmailConnection(user.id);
+      } catch (error) {
+        console.error("Dashboard initialization error:", error);
+        router.push("/login");
+      }
+    };
+
+    initializeDashboard();
+  }, [router, supabase]);
 
   const connectGmail = async () => {
     try {
@@ -434,10 +431,10 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
               <div className="flex space-x-2">
-                {["all", "promotional", "newsletters", "deletable"].map((filterType) => (
+                {(["all", "promotional", "newsletters", "deletable"] as const).map((filterType) => (
                   <button
                     key={filterType}
-                    onClick={() => setFilter(filterType as any)}
+                    onClick={() => setFilter(filterType)}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       filter === filterType
                         ? "bg-blue-100 text-blue-700 border border-blue-200"
@@ -600,8 +597,8 @@ export default function Dashboard() {
                 <Crown className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Limit Reached</h3>
                 <p className="text-gray-600 mb-6">
-                  You've scanned your daily limit of 25 emails. Upgrade to Premium for unlimited
-                  scanning and advanced features.
+                  You&apos;ve scanned your daily limit of 25 emails. Upgrade to Premium for
+                  unlimited scanning and advanced features.
                 </p>
                 <div className="flex space-x-3">
                   <button

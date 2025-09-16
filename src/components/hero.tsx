@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Check, Mail, Trash2, Calendar } from "lucide-react";
+import { ArrowUpRight, Check, Mail } from "lucide-react";
 
 export default function Hero() {
   return (

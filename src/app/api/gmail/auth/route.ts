@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { createClient } from '../../../../../supabase/server';
 
@@ -10,7 +10,7 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 // GET: Generate Gmail authorization URL
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createClient();
     
@@ -53,7 +53,7 @@ const CallbackSchema = z.object({
   state: z.string().uuid(),
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
     const parsed = CallbackSchema.safeParse(body);
