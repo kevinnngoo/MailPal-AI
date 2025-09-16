@@ -2,14 +2,18 @@
 
 import { createContext, useContext, useCallback } from "react";
 
+// Analytics property types
+type AnalyticsProperty = string | number | boolean | null | undefined;
+type AnalyticsProperties = Record<string, AnalyticsProperty>;
+
 interface AnalyticsContextType {
-  track: (event: string, properties?: Record<string, any>) => void;
+  track: (event: string, properties?: AnalyticsProperties) => void;
 }
 
 const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
-  const track = useCallback(async (event: string, properties: Record<string, any> = {}) => {
+  const track = useCallback(async (event: string, properties: AnalyticsProperties = {}) => {
     try {
       await fetch("/api/analytics", {
         method: "POST",
@@ -59,7 +63,7 @@ export function useTrackEvent() {
   const { track } = useAnalytics();
 
   return useCallback(
-    (event: string, properties?: Record<string, any>) => {
+    (event: string, properties?: AnalyticsProperties) => {
       track(event, properties);
     },
     [track]

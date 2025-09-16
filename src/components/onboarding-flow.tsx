@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -91,18 +92,22 @@ export default function OnboardingFlow({ onComplete }: { onComplete?: () => void
 
           <div className="grid gap-4">
             <Button className="w-full py-6 text-lg" variant="outline">
-              <img
+              <Image
                 src="https://developers.google.com/identity/images/g-logo.png"
                 alt="Google"
-                className="w-6 h-6 mr-3"
+                width={24}
+                height={24}
+                className="mr-3"
               />
               Connect Gmail Account
             </Button>
             <Button className="w-full py-6 text-lg" variant="outline">
-              <img
+              <Image
                 src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg"
                 alt="Outlook"
-                className="w-6 h-6 mr-3"
+                width={24}
+                height={24}
+                className="mr-3"
               />
               Connect Outlook Account
             </Button>

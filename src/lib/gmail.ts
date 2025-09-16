@@ -1,6 +1,7 @@
 // lib/gmail.ts
-import { google } from 'googleapis';
+import { google, gmail_v1 } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export interface EmailData {
   id: string;
@@ -24,15 +25,19 @@ export interface SafetyCheck {
   requiresConfirmation: boolean;
 }
 
+// Gmail API types
+type GmailMessage = gmail_v1.Schema$Message;
+type GmailHeader = gmail_v1.Schema$MessagePartHeader;
+
 import { encrypt } from './encryption';
 
 class GmailService {
   private oauth2Client: OAuth2Client;
-  private gmail: any;
-  private supabase: any;
+  private gmail: gmail_v1.Gmail;
+  private supabase: SupabaseClient;
   private userId: string;
 
-  constructor(accessToken: string, refreshToken: string, supabase: any, userId: string) {
+  constructor(accessToken: string, refreshToken: string, supabase: SupabaseClient, userId: string) {
     this.supabase = supabase;
     this.userId = userId;
 
@@ -68,8 +73,9 @@ class GmailService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await operation();
-      } catch (error: any) {
-        if (error?.code === 401 && attempt < maxRetries) {
+      } catch (error: unknown) {
+        const apiError = error as { code?: number; message?: string };
+        if (apiError?.code === 401 && attempt < maxRetries) {
           // Token expired, refresh and retry
           await this.oauth2Client.getAccessToken();
           continue;
@@ -120,8 +126,9 @@ class GmailService {
 
           if (response.data.messages) {
             const emailDetails = await Promise.all(
-              response.data.messages.map(async (msg: any) => {
+              response.data.messages.map(async (msg: GmailMessage) => {
                 try {
+                  if (!msg.id) return null;
                   return await this.getEmailDetails(msg.id);
                 } catch (error) {
                   console.error(`Error getting email ${msg.id}:`, error);
@@ -157,7 +164,7 @@ class GmailService {
       const headers = message.payload?.headers || [];
       
       const getHeader = (name: string) => 
-        headers.find((h: any) => h.name?.toLowerCase() === name.toLowerCase())?.value || '';
+        headers.find((h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase())?.value || '';
 
       const subject = getHeader('subject');
       const from = getHeader('from');
@@ -197,7 +204,7 @@ class GmailService {
     }
   }
 
-  private extractUnsubscribeLink(message: any, listUnsubscribe: string): string | undefined {
+  private extractUnsubscribeLink(message: GmailMessage, listUnsubscribe: string): string | undefined {
     if (listUnsubscribe) {
       // Parse List-Unsubscribe header (RFC 2369)
       const urlMatch = listUnsubscribe.match(/<(https?:\/\/[^>]+)>/);
@@ -220,7 +227,7 @@ class GmailService {
     return undefined;
   }
 
-  private extractEmailBody(message: any): string {
+  private extractEmailBody(message: GmailMessage): string {
     let body = '';
     
     if (message.payload?.body?.data) {
@@ -353,7 +360,7 @@ class GmailService {
         await this.gmail.users.messages.modify({
           userId: 'me',
           id: messageId,
-          resource: {
+          requestBody: {
             removeLabelIds: ['INBOX'],
             addLabelIds: ['CATEGORY_PROMOTIONS'],
           },

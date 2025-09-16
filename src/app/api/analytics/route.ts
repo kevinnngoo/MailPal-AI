@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "../../../../supabase/server";
 
+// Analytics interfaces
+interface AnalyticsEvent {
+  event_type: string;
+  type: string;
+  data: {
+    user_id: string;
+    timestamp: string;
+    properties: Record<string, unknown>;
+    user_agent?: string | null;
+    ip?: string | null;
+  };
+  created_at: string;
+}
+
+interface EventCounts {
+  [eventType: string]: number;
+}
+
+interface DailyCounts {
+  [date: string]: number;
+}
+
+interface AnalyticsResponse {
+  total_events: number;
+  unique_sessions: number;
+  top_events: EventCounts;
+  daily_activity: DailyCounts;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -74,19 +103,19 @@ export async function GET(req: NextRequest) {
     }
 
     // Process and aggregate the data
-    const analytics = {
+    const analytics: AnalyticsResponse = {
       total_events: events?.length || 0,
-      unique_sessions: new Set(events?.map((e) => e.data?.user_id)).size,
-      top_events: events?.reduce((acc: any, event) => {
+      unique_sessions: new Set(events?.map((e: AnalyticsEvent) => e.data?.user_id)).size,
+      top_events: events?.reduce((acc: EventCounts, event: AnalyticsEvent) => {
         const eventType = event.event_type;
         acc[eventType] = (acc[eventType] || 0) + 1;
         return acc;
-      }, {}),
-      daily_activity: events?.reduce((acc: any, event) => {
+      }, {} as EventCounts),
+      daily_activity: events?.reduce((acc: DailyCounts, event: AnalyticsEvent) => {
         const date = new Date(event.created_at).toISOString().split("T")[0];
         acc[date] = (acc[date] || 0) + 1;
         return acc;
-      }, {}),
+      }, {} as DailyCounts),
     };
 
     return NextResponse.json(analytics);
