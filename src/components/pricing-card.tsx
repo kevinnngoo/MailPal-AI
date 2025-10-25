@@ -3,7 +3,6 @@
 import { User } from "@supabase/supabase-js";
 import { Button } from "./ui/button";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
-import { createClient } from "../../supabase/client";
 
 interface PricingPlan {
   id: string;
@@ -19,43 +18,41 @@ interface PricingPlan {
 }
 
 export default function PricingCard({ item, user }: { item: PricingPlan; user: User | null }) {
-  const supabase = createClient();
 
   // Handle checkout process
   const handleCheckout = async (priceId: string) => {
     if (!user) {
       // Redirect to login if user is not authenticated
-      window.location.href = "/login?redirect=pricing";
+      window.location.href = "/sign-in?redirect=pricing";
       return;
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "supabase-functions-create-checkout",
-        {
-          body: {
-            price_id: priceId,
-            user_id: user.id,
-            return_url: `${window.location.origin}/dashboard`,
-          },
-          headers: {
-            "X-Customer-Email": user.email || "",
-          },
-        }
-      );
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId: priceId,
+        }),
+      });
 
-      if (error) {
-        throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
       }
 
       // Redirect to Stripe checkout
-      if (data?.url) {
-        window.location.href = data.url;
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
       } else {
         throw new Error("No checkout URL returned");
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
+      alert('Failed to start checkout process. Please try again.');
     }
   };
 

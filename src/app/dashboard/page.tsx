@@ -20,22 +20,22 @@ import {
 
 interface EmailData {
   id: string;
+  gmail_id: string;
   subject: string;
-  from: string;
+  sender_name: string;
+  sender_email: string;
   date: string;
   snippet: string;
-  category: "promotional" | "social" | "updates" | "forums" | "primary";
-  priority: "high" | "medium" | "low";
-  isNewsletter: boolean;
-  isDeletable: boolean;
-  unsubscribeLink?: string;
+  category: "subscription" | "promotional" | "updates" | "forums" | "primary";
+  unsubscribe_links: string[];
+  labels: string[];
 }
 
 interface ScanSummary {
   total: number;
+  subscription: number;
   promotional: number;
-  newsletters: number;
-  deletable: number;
+  unsubscribeable: number;
 }
 
 interface Usage {
@@ -55,9 +55,10 @@ export default function Dashboard() {
   const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [actionType, setActionType] = useState<"unsubscribe" | "delete">("unsubscribe");
-  const [filter, setFilter] = useState<"all" | "promotional" | "newsletters" | "deletable">("all");
+  const [filter, setFilter] = useState<"all" | "subscription" | "promotional" | "unsubscribeable">("all");
   const [usage, setUsage] = useState<Usage | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [subscription, setSubscription] = useState<string | null>(null);
 
   const supabase = createClient();
   const router = useRouter();
@@ -67,14 +68,16 @@ export default function Dashboard() {
       try {
         const { data: profile } = await supabase
           .from("users")
-          .select("gmail_connected_at")
+          .select("gmail_connected_at, subscription")
           .eq("user_id", userId)
           .single();
 
         setIsGmailConnected(!!profile?.gmail_connected_at);
+        setSubscription(profile?.subscription || 'free');
       } catch (error) {
         console.error("Failed to check Gmail connection:", error);
         setIsGmailConnected(false);
+        setSubscription('free');
       }
     };
 
@@ -121,12 +124,11 @@ export default function Dashboard() {
   const scanEmails = async () => {
     setIsScanning(true);
     try {
-      const response = await fetch("/api/gmail/scan", {
+      const response = await fetch("/api/gmail/sync", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ maxResults: 50 }),
       });
 
       const data = await response.json();
@@ -142,10 +144,16 @@ export default function Dashboard() {
       }
 
       if (data.success) {
-        setEmails(data.emails);
-        setScanSummary(data.summary);
-        setUsage(data.usage);
-        setSelectedEmails(new Set());
+        // Fetch the stored emails from our database
+        const emailsResponse = await fetch("/api/emails");
+        const emailsData = await emailsResponse.json();
+        
+        if (emailsData.success) {
+          setEmails(emailsData.emails);
+          setScanSummary(data.summary);
+          setUsage(data.usage);
+          setSelectedEmails(new Set());
+        }
       } else {
         addToast("Failed to scan emails: " + data.error, "error");
       }
@@ -178,6 +186,12 @@ export default function Dashboard() {
 
   const handleBulkAction = (type: "unsubscribe" | "delete") => {
     if (selectedEmails.size === 0) return;
+
+    // Check subscription limits for bulk actions
+    if (subscription !== 'premium' && selectedEmails.size > 5) {
+      setShowUpgradePrompt(true);
+      return;
+    }
 
     setActionType(type);
     setShowConfirmDialog(true);
@@ -233,25 +247,12 @@ export default function Dashboard() {
     switch (filter) {
       case "promotional":
         return emails.filter((email) => email.category === "promotional");
-      case "newsletters":
-        return emails.filter((email) => email.isNewsletter);
-      case "deletable":
-        return emails.filter((email) => email.isDeletable);
+      case "subscription":
+        return emails.filter((email) => email.category === "subscription");
+      case "unsubscribeable":
+        return emails.filter((email) => email.unsubscribe_links.length > 0);
       default:
         return emails;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "text-red-600 bg-red-50 border-red-200";
-      case "medium":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200";
-      case "low":
-        return "text-green-600 bg-green-50 border-green-200";
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
@@ -259,10 +260,10 @@ export default function Dashboard() {
     switch (category) {
       case "promotional":
         return "🛒";
-      case "social":
-        return "👥";
+      case "subscription":
+        return "�";
       case "updates":
-        return "📬";
+        return "�";
       case "forums":
         return "💬";
       default:
@@ -357,6 +358,12 @@ export default function Dashboard() {
                   {usage.remaining} scans remaining today
                 </div>
               )}
+              {subscription === 'premium' && (
+                <div className="text-sm text-yellow-600 bg-yellow-100 px-3 py-1 rounded-full flex items-center">
+                  <Crown className="h-3 w-3 mr-1" />
+                  Premium
+                </div>
+              )}
             </div>
             <div className="flex items-center space-x-4">
               <button
@@ -409,8 +416,8 @@ export default function Dashboard() {
               <div className="flex items-center">
                 <div className="text-2xl">📬</div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Newsletters</p>
-                  <p className="text-2xl font-bold text-gray-900">{scanSummary.newsletters}</p>
+                  <p className="text-sm font-medium text-gray-600">Subscriptions</p>
+                  <p className="text-2xl font-bold text-gray-900">{scanSummary.subscription}</p>
                 </div>
               </div>
             </div>
@@ -418,8 +425,8 @@ export default function Dashboard() {
               <div className="flex items-center">
                 <CheckCircle className="h-8 w-8 text-green-500" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Safe to Clean</p>
-                  <p className="text-2xl font-bold text-gray-900">{scanSummary.deletable}</p>
+                  <p className="text-sm font-medium text-gray-600">Unsubscribeable</p>
+                  <p className="text-2xl font-bold text-gray-900">{scanSummary.unsubscribeable}</p>
                 </div>
               </div>
             </div>
@@ -431,7 +438,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
               <div className="flex space-x-2">
-                {(["all", "promotional", "newsletters", "deletable"] as const).map((filterType) => (
+                {(["all", "subscription", "promotional", "unsubscribeable"] as const).map((filterType) => (
                   <button
                     key={filterType}
                     onClick={() => setFilter(filterType)}
@@ -501,31 +508,24 @@ export default function Dashboard() {
           ) : (
             <div className="divide-y divide-gray-200">
               {filteredEmails.map((email) => (
-                <div key={email.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div key={email.gmail_id} className="p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start space-x-4">
                     <input
                       type="checkbox"
-                      checked={selectedEmails.has(email.id)}
-                      onChange={() => handleSelectEmail(email.id)}
+                      checked={selectedEmails.has(email.gmail_id)}
+                      onChange={() => handleSelectEmail(email.gmail_id)}
                       className="mt-1 rounded border-gray-300"
                     />
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
                         <span className="text-lg">{getCategoryIcon(email.category)}</span>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(email.priority)}`}
-                        >
-                          {email.priority}
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                          {email.category}
                         </span>
-                        {email.isNewsletter && (
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                            Newsletter
-                          </span>
-                        )}
-                        {!email.isDeletable && (
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
-                            Protected
+                        {email.unsubscribe_links.length > 0 && (
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                            Can Unsubscribe
                           </span>
                         )}
                       </div>
@@ -539,13 +539,13 @@ export default function Dashboard() {
                         </span>
                       </div>
 
-                      <p className="text-sm text-gray-600 mb-1 truncate">{email.from}</p>
+                      <p className="text-sm text-gray-600 mb-1 truncate">{email.sender_name} &lt;{email.sender_email}&gt;</p>
                       <p className="text-sm text-gray-500 line-clamp-2">{email.snippet}</p>
 
-                      {email.unsubscribeLink && (
+                      {email.unsubscribe_links.length > 0 && (
                         <div className="mt-2 flex items-center space-x-1 text-xs text-green-600">
                           <CheckCircle className="h-3 w-3" />
-                          <span>Unsubscribe link available</span>
+                          <span>{email.unsubscribe_links.length} unsubscribe link(s) available</span>
                         </div>
                       )}
                     </div>
@@ -595,11 +595,24 @@ export default function Dashboard() {
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <div className="text-center">
                 <Crown className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Limit Reached</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  {usage?.remaining === 0 ? 'Daily Limit Reached' : 'Premium Feature'}
+                </h3>
                 <p className="text-gray-600 mb-6">
-                  You&apos;ve scanned your daily limit of 25 emails. Upgrade to Premium for
-                  unlimited scanning and advanced features.
+                  {usage?.remaining === 0 
+                    ? "You've scanned your daily limit of 25 emails. Upgrade to Premium for unlimited scanning and advanced features."
+                    : "Bulk actions for more than 5 emails require a Premium subscription. Upgrade for unlimited bulk operations and advanced features."
+                  }
                 </p>
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <h4 className="font-semibold mb-2">Premium Benefits:</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Unlimited email scanning</li>
+                    <li>• Bulk operations (unlimited)</li>
+                    <li>• Advanced analytics</li>
+                    <li>• Priority support</li>
+                  </ul>
+                </div>
                 <div className="flex space-x-3">
                   <button
                     onClick={() => setShowUpgradePrompt(false)}
@@ -608,7 +621,7 @@ export default function Dashboard() {
                     Maybe Later
                   </button>
                   <button
-                    onClick={() => router.push("/#pricing")}
+                    onClick={() => router.push("/pricing")}
                     className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                   >
                     Upgrade Now
