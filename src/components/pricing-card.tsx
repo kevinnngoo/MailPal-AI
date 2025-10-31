@@ -18,7 +18,6 @@ interface PricingPlan {
 }
 
 export default function PricingCard({ item, user }: { item: PricingPlan; user: User | null }) {
-
   // Handle checkout process
   const handleCheckout = async (priceId: string) => {
     if (!user) {
@@ -28,10 +27,10 @@ export default function PricingCard({ item, user }: { item: PricingPlan; user: U
     }
 
     try {
-      const response = await fetch('/api/stripe/checkout', {
-        method: 'POST',
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           priceId: priceId,
@@ -41,7 +40,7 @@ export default function PricingCard({ item, user }: { item: PricingPlan; user: U
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+        throw new Error(data.error || "Failed to create checkout session");
       }
 
       // Redirect to Stripe checkout
@@ -52,7 +51,7 @@ export default function PricingCard({ item, user }: { item: PricingPlan; user: U
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
-      alert('Failed to start checkout process. Please try again.');
+      alert("Failed to start checkout process. Please try again.");
     }
   };
 

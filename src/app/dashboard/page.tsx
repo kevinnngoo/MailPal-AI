@@ -55,7 +55,9 @@ export default function Dashboard() {
   const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [actionType, setActionType] = useState<"unsubscribe" | "delete">("unsubscribe");
-  const [filter, setFilter] = useState<"all" | "subscription" | "promotional" | "unsubscribeable">("all");
+  const [filter, setFilter] = useState<"all" | "subscription" | "promotional" | "unsubscribeable">(
+    "all"
+  );
   const [usage, setUsage] = useState<Usage | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [subscription, setSubscription] = useState<string | null>(null);
@@ -73,11 +75,11 @@ export default function Dashboard() {
           .single();
 
         setIsGmailConnected(!!profile?.gmail_connected_at);
-        setSubscription(profile?.subscription || 'free');
+        setSubscription(profile?.subscription || "free");
       } catch (error) {
         console.error("Failed to check Gmail connection:", error);
         setIsGmailConnected(false);
-        setSubscription('free');
+        setSubscription("free");
       }
     };
 
@@ -147,7 +149,7 @@ export default function Dashboard() {
         // Fetch the stored emails from our database
         const emailsResponse = await fetch("/api/emails");
         const emailsData = await emailsResponse.json();
-        
+
         if (emailsData.success) {
           setEmails(emailsData.emails);
           setScanSummary(data.summary);
@@ -188,7 +190,7 @@ export default function Dashboard() {
     if (selectedEmails.size === 0) return;
 
     // Check subscription limits for bulk actions
-    if (subscription !== 'premium' && selectedEmails.size > 5) {
+    if (subscription !== "premium" && selectedEmails.size > 5) {
       setShowUpgradePrompt(true);
       return;
     }
@@ -358,7 +360,7 @@ export default function Dashboard() {
                   {usage.remaining} scans remaining today
                 </div>
               )}
-              {subscription === 'premium' && (
+              {subscription === "premium" && (
                 <div className="text-sm text-yellow-600 bg-yellow-100 px-3 py-1 rounded-full flex items-center">
                   <Crown className="h-3 w-3 mr-1" />
                   Premium
@@ -438,19 +440,21 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
               <div className="flex space-x-2">
-                {(["all", "subscription", "promotional", "unsubscribeable"] as const).map((filterType) => (
-                  <button
-                    key={filterType}
-                    onClick={() => setFilter(filterType)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      filter === filterType
-                        ? "bg-blue-100 text-blue-700 border border-blue-200"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent"
-                    }`}
-                  >
-                    {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
-                  </button>
-                ))}
+                {(["all", "subscription", "promotional", "unsubscribeable"] as const).map(
+                  (filterType) => (
+                    <button
+                      key={filterType}
+                      onClick={() => setFilter(filterType)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        filter === filterType
+                          ? "bg-blue-100 text-blue-700 border border-blue-200"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent"
+                      }`}
+                    >
+                      {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
+                    </button>
+                  )
+                )}
               </div>
 
               <div className="flex items-center space-x-4">
@@ -539,13 +543,17 @@ export default function Dashboard() {
                         </span>
                       </div>
 
-                      <p className="text-sm text-gray-600 mb-1 truncate">{email.sender_name} &lt;{email.sender_email}&gt;</p>
+                      <p className="text-sm text-gray-600 mb-1 truncate">
+                        {email.sender_name} &lt;{email.sender_email}&gt;
+                      </p>
                       <p className="text-sm text-gray-500 line-clamp-2">{email.snippet}</p>
 
                       {email.unsubscribe_links.length > 0 && (
                         <div className="mt-2 flex items-center space-x-1 text-xs text-green-600">
                           <CheckCircle className="h-3 w-3" />
-                          <span>{email.unsubscribe_links.length} unsubscribe link(s) available</span>
+                          <span>
+                            {email.unsubscribe_links.length} unsubscribe link(s) available
+                          </span>
                         </div>
                       )}
                     </div>
@@ -596,13 +604,12 @@ export default function Dashboard() {
               <div className="text-center">
                 <Crown className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {usage?.remaining === 0 ? 'Daily Limit Reached' : 'Premium Feature'}
+                  {usage?.remaining === 0 ? "Daily Limit Reached" : "Premium Feature"}
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  {usage?.remaining === 0 
+                  {usage?.remaining === 0
                     ? "You've scanned your daily limit of 25 emails. Upgrade to Premium for unlimited scanning and advanced features."
-                    : "Bulk actions for more than 5 emails require a Premium subscription. Upgrade for unlimited bulk operations and advanced features."
-                  }
+                    : "Bulk actions for more than 5 emails require a Premium subscription. Upgrade for unlimited bulk operations and advanced features."}
                 </p>
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <h4 className="font-semibold mb-2">Premium Benefits:</h4>
